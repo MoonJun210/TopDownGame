@@ -1,24 +1,42 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 public class PlayerController : BaseController
 {
+    private GameManager gameManager;
     private Camera camera;
 
-    protected override void Start()
+    public void Init(GameManager gameManager)
     {
-        base.Start();
+        this.gameManager = gameManager;
         camera = Camera.main;
     }
 
+
     protected override void HandleAction()
     {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-        movementDirection = new Vector2(horizontal, vertical).normalized;
 
-        Vector2 mousePosition = Input.mousePosition;
+
+
+    }
+
+    public override void Death()
+    {
+        base.Death();
+        gameManager.GameOver();
+    }
+
+    void OnMove(InputValue inputValue)
+    {
+        movementDirection = inputValue.Get<Vector2>();
+        movementDirection = movementDirection.normalized;
+    }
+
+    void OnLook(InputValue inputValue)
+    {
+
+        Vector2 mousePosition = inputValue.Get<Vector2>();
         Vector2 worldPos = camera.ScreenToWorldPoint(mousePosition);
         lookDirection = (worldPos - (Vector2)transform.position);
 
@@ -30,7 +48,14 @@ public class PlayerController : BaseController
         {
             lookDirection = lookDirection.normalized;
         }
+    }
 
-        isAttacking = Input.GetMouseButton(0);
+    void OnFire(InputValue inputValue)
+    {
+        if(EventSystem.current.IsPointerOverGameObject())
+        {
+            return;
+        }
+        isAttacking = inputValue.isPressed;
     }
 }
